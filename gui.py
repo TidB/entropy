@@ -61,6 +61,7 @@ class GUI:
         info = "\n".join(
             [
                 "Length: " + str(len(text)),
+                "Unique chars: " + str(len(char_map)),
                 "Entropy: " + str(entropy),
                 "Metric entropy: " + str(metric_entropy),
                 "Optimal bit usage: " + str(optimal)
