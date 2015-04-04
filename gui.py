@@ -4,7 +4,11 @@ import calc
 
 
 class GUI:
+    """A simple Tk-based interface for real-time entropy-related analytics
+    on given texts."""
+
     def __init__(self, root):
+        """Initializes the GUI where 'root' is a tkinter.Tk instance."""
         self.parent = root
         self.parent.state("zoomed")
 
@@ -15,9 +19,11 @@ class GUI:
         self.input_head.grid(row=0, column=0, sticky="nwes")
         self.ignore_case_value = tk.IntVar()
         self.ignore_case_value.trace("w", self.case_switch)
-        self.ignore_case = tk.Checkbutton(self.frame,
-                                          variable=self.ignore_case_value,
-                                          text="Ignore case")
+        self.ignore_case = tk.Checkbutton(
+            self.frame,
+            variable=self.ignore_case_value,
+            text="Ignore case"
+        )
         self.ignore_case.grid(row=0, column=1, sticky="nwes")
         self.input_main = tk.Text(self.frame)
         self.input_main.grid(row=1, column=0, sticky="nwes", columnspan=2)
@@ -36,27 +42,32 @@ class GUI:
         self.frame.columnconfigure(2, weight=1)
 
     def case_switch(self, *_):
+        """Toggles case sensivity ."""
         self.input_main.edit_modified(True)
         self.update()
 
     def update(self, *_):
-        if self.input_main.edit_modified():
-            text = self.calculate()
-            self.output_main["state"] = tk.NORMAL
-            self.output_main.delete("1.0", tk.END)
-            self.output_main.insert("1.0", text)
-            self.output_main["state"] = tk.DISABLED
-            self.input_main.edit_modified(False)
+        """Updates the contents of the analysis text box."""
+        if not self.input_main.edit_modified():
+            return
+
+        analyze_text = self.calculate()
+        self.output_main["state"] = tk.NORMAL
+        self.output_main.delete("1.0", tk.END)
+        self.output_main.insert("1.0", analyze_text)
+        self.output_main["state"] = tk.DISABLED
+        self.input_main.edit_modified(False)
 
     def calculate(self, *_):
+        """Creates the analysis text."""
         text = self.input_main.get("1.0", "end-1c")
         if self.ignore_case_value.get():
             text = text.lower()
         char_map = calc.char_mapping(text)
 
         entropy = calc.entropy(char_map)
-        metric_entropy = calc.metric_entropy(entropy, len(text))
-        optimal = calc.optimal_bits(entropy, len(text))
+        metric_entropy = calc.metric_entropy(text)
+        optimal = calc.optimal_bits(text)
 
         info = "\n".join(
             [

@@ -1,30 +1,49 @@
-from math import ceil, log2
+"""
+Utilities for entropy-related calculations.
+"""
+
+
+from math import ceil as _ceil, log2 as _log2
 
 
 def prob_to_info(probability):
-    return -log2(probability)
+    """Converts probability in the range from 0 to 1 into information measured
+    in bits, therefore using the dual logarithm. Returns None if the probability
+    is equal to zero."""
+    if probability == 0:
+        return None
+    elif probability == 1:
+        return 0
+    else:
+        return -_log2(probability)
 
 
 def info_to_prob(information):
+    """Converts information measured in bits to probablity."""
     return 2**-information
 
 
-def entropy(char_map):
-    return sum(prob[1]*prob_to_info(prob[1]) for prob in char_map)
+def entropy(iterable):
+    """Calculates the Shannon entropy of the given iterable."""
+    return sum(prob[1]*prob_to_info(prob[1]) for prob in char_mapping(iterable))
 
 
-def optimal_bits(entropy, length):
-    return ceil(entropy) * length
+def optimal_bits(iterable):
+    """Calculates the optimal usage of bits for decoding the iterable."""
+    return _ceil(entropy(iterable)) * len(iterable)
 
 
-def metric_entropy(entropy, length):
-    return entropy / length
+def metric_entropy(iterable):
+    """Calculates the metric entropy of the iterable."""
+    return entropy(iterable) / len(iterable)
 
 
-def char_mapping(string):
-    char_map = dict.fromkeys(set(string))
-    for char in set(string):
-        probability = string.count(char) / len(string)
+def char_mapping(iterable):
+    """Creates a dictionary of the unique chararacters and their probability
+    in the given iterable."""
+    char_map = dict.fromkeys(set(iterable))
+    for char in set(iterable):
+        probability = iterable.count(char) / len(iterable)
         char_map[char] = probability
 
     return sorted(char_map.items(), key=lambda x: x[1], reverse=True)
