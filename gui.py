@@ -3,16 +3,16 @@ import tkinter as tk
 import calc
 
 
-class GUI:
+class GUI(tk.Tk):
     """A simple Tk-based interface for real-time entropy-related analytics
     on given texts."""
 
-    def __init__(self, root):
+    def __init__(self):
         """Initializes the GUI where 'root' is a tkinter.Tk instance."""
-        self.parent = root
-        self.parent.state("zoomed")
+        super().__init__()
+        self.state("zoomed")
 
-        self.frame = tk.Frame(self.parent)
+        self.frame = tk.Frame(self)
         self.frame.grid(row=0, column=0, sticky="nwes")
 
         self.input_head = tk.Label(self.frame, text="Input:")
@@ -34,15 +34,15 @@ class GUI:
         self.output_main = tk.Text(self.frame, state=tk.DISABLED)
         self.output_main.grid(row=1, column=2, sticky="nwes")
 
-        self.parent.rowconfigure(0, weight=1)
-        self.parent.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
         self.frame.rowconfigure(1, weight=1)
         self.frame.columnconfigure(0, weight=1)
         self.frame.columnconfigure(1, weight=1)
         self.frame.columnconfigure(2, weight=1)
 
     def case_switch(self, *_):
-        """Toggles case sensivity ."""
+        """Toggles case sensivity."""
         self.input_main.edit_modified(True)
         self.update()
 
@@ -51,41 +51,47 @@ class GUI:
         if not self.input_main.edit_modified():
             return
 
-        analyze_text = self.calculate()
+        analyze_text = self.create_analysis()
         self.output_main["state"] = tk.NORMAL
         self.output_main.delete("1.0", tk.END)
         self.output_main.insert("1.0", analyze_text)
         self.output_main["state"] = tk.DISABLED
         self.input_main.edit_modified(False)
 
-    def calculate(self, *_):
+    def create_analysis(self):
         """Creates the analysis text."""
         text = self.input_main.get("1.0", "end-1c")
+        if not text:
+            return ""
         if self.ignore_case_value.get():
             text = text.lower()
-        char_map = calc.char_mapping(text)
 
-        entropy = calc.entropy(char_map)
+        char_map = calc.char_mapping(text)
+        unique_chars = len(char_map)
+        entropy = calc.entropy(text)
         metric_entropy = calc.metric_entropy(text)
         optimal = calc.optimal_bits(text)
 
-        info = "\n".join(
-            [
-                "Length: " + str(len(text)),
-                "Unique chars: " + str(len(char_map)),
-                "Entropy: " + str(entropy),
-                "Metric entropy: " + str(metric_entropy),
-                "Optimal bit usage: " + str(optimal)
-            ]
+        info = """Length: {}
+Unique chars: {}
+Entropy: {}
+Metric entropy: {}
+Optimal bit usage: {}""".format(
+            len(text),
+            unique_chars,
+            entropy,
+            metric_entropy,
+            optimal
         )
 
-        table_head = " Char\t| Probability\t\t| Bits\t\t| Occurences"
+        table_head = " Char | Probability |     Bits    | Occurrences "
         table_body = "\n".join(
             [
-                " " + repr(char)[1:-1] +
-                "\t" + str(round(prob, 7)) +
-                "\t\t" + str(round(calc.prob_to_info(prob), 7)) +
-                "\t\t" + str(text.count(char))
+                " {:<4} | {:>11.7f} | {:>11.7f} | {:>11}".format(
+                    char,
+                    prob, calc.prob_to_info(prob),
+                    text.count(char)
+                )
                 for char, prob in char_map
             ]
         )
@@ -93,12 +99,6 @@ class GUI:
 
         return "\n\n".join([info, table])
 
-
-def main():
-    root = tk.Tk()
-    _ = GUI(root)
-    root.mainloop()
-
-
 if __name__ == "__main__":
-    main()
+    root = GUI()
+    root.mainloop()
