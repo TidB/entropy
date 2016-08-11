@@ -8,7 +8,6 @@ class GUI(tk.Tk):
     on given texts."""
 
     def __init__(self):
-        """Initializes the GUI where 'root' is a tkinter.Tk instance."""
         super().__init__()
         self.state("zoomed")
 
